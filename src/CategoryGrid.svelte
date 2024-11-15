@@ -1,20 +1,16 @@
 <script>
   let categories = [
-    { name: "Women", icon: "fa fa-female", subcategories: [{ name: "Dresses", url: "/women/dresses" }, { name: "Shoes", url: "/women/shoes" }, { name: "Accessories", url: "/women/accessories" }] },
-    { name: "Men", icon: "fa fa-male", subcategories: [{ name: "Shirts", url: "/men/shirts" }, { name: "Pants", url: "/men/pants" }, { name: "Accessories", url: "/men/accessories" }] },
-    { name: "Electronics", icon: "fa fa-mobile", subcategories: [{ name: "Mobile", url: "/electronics/mobile" }, { name: "Laptops", url: "/electronics/laptops" }, { name: "Tablets", url: "/electronics/tablets" }] },
-    { name: "Toys", icon: "fa fa-puzzle-piece", subcategories: [{ name: "Puzzles", url: "/toys/puzzles" }, { name: "Dolls", url: "/toys/dolls" }, { name: "Cars", url: "/toys/cars" }] },
-    { name: "Gaming", icon: "fa fa-gamepad", subcategories: [{ name: "Consoles", url: "/gaming/consoles" }, { name: "PC Games", url: "/gaming/pc-games" }, { name: "Accessories", url: "/gaming/accessories" }] },
-    { name: "Handbags", icon: "fa fa-briefcase", subcategories: [{ name: "Clutches", url: "/handbags/clutches" }, { name: "Totes", url: "/handbags/totes" }, { name: "Backpacks", url: "/handbags/backpacks" }] },
-    { name: "Home", icon: "fa fa-home", subcategories: [{ name: "Furniture", url: "/home/furniture" }, { name: "Decor", url: "/home/decor" }, { name: "Kitchen", url: "/home/kitchen" }] },
-    { name: "Vintage", icon: "fa fa-lightbulb-o", subcategories: [{ name: "Clothing", url: "/vintage/clothing" }, { name: "Jewelry", url: "/vintage/jewelry" }, { name: "Decor", url: "/vintage/decor" }] },
-    { name: "Beauty", icon: "fa fa-star", subcategories: [{ name: "Makeup", url: "/beauty/makeup" }, { name: "Skincare", url: "/beauty/skincare" }, { name: "Haircare", url: "/beauty/haircare" }] },
-    { name: "Kids", icon: "fa fa-child", subcategories: [{ name: "Toys", url: "/kids/toys" }, { name: "Clothing", url: "/kids/clothing" }, { name: "Books", url: "/kids/books" }] },
-    { name: "Sports", icon: "fa fa-futbol-o", subcategories: [{ name: "Soccer", url: "/sports/soccer" }, { name: "Basketball", url: "/sports/basketball" }, { name: "Fitness", url: "/sports/fitness" }] },
-    { name: "Handmade", icon: "fa fa-scissors", subcategories: [{ name: "Jewelry", url: "/handmade/jewelry" }, { name: "Home Decor", url: "/handmade/home-decor" }, { name: "Art", url: "/handmade/art" }] },
-    { name: "Office", icon: "fa fa-clipboard", subcategories: [{ name: "Furniture", url: "/office/furniture" }, { name: "Supplies", url: "/office/supplies" }, { name: "Stationery", url: "/office/stationery" }] },
-    { name: "Pet", icon: "fa fa-paw", subcategories: [{ name: "Food", url: "/pet/food" }, { name: "Toys", url: "/pet/toys" }, { name: "Health", url: "/pet/health" }] }
-  ];
+  { name: "Community", icon: "fa fa-users", subcategories: [{ name: "Dresses", url: "/women/dresses" }, { name: "Shoes", url: "/women/shoes" }, { name: "Accessories", url: "/women/accessories" }] },
+  { name: "Events", icon: "fa fa-calendar", subcategories: [{ name: "Shirts", url: "/men/shirts" }, { name: "Pants", url: "/men/pants" }, { name: "Accessories", url: "/men/accessories" }] },
+  { name: "For Sale", icon: "fa fa-tags", subcategories: [{ name: "Mobile", url: "/electronics/mobile" }, { name: "Laptops", url: "/electronics/laptops" }, { name: "Tablets", url: "/electronics/tablets" }] },
+  { name: "Gigs", icon: "fa fa-music", subcategories: [{ name: "Puzzles", url: "/toys/puzzles" }, { name: "Dolls", url: "/toys/dolls" }, { name: "Cars", url: "/toys/cars" }] },
+  { name: "Housing", icon: "fa fa-home", subcategories: [{ name: "Consoles", url: "/gaming/consoles" }, { name: "PC Games", url: "/gaming/pc-games" }, { name: "Accessories", url: "/gaming/accessories" }] },
+  { name: "Jobs", icon: "fa fa-briefcase", subcategories: [{ name: "Clutches", url: "/handbags/clutches" }, { name: "Totes", url: "/handbags/totes" }, { name: "Backpacks", url: "/handbags/backpacks" }] },
+  { name: "Resumes", icon: "fa fa-file-alt", subcategories: [{ name: "Furniture", url: "/home/furniture" }, { name: "Decor", url: "/home/decor" }, { name: "Kitchen", url: "/home/kitchen" }] },
+  { name: "Services", icon: "fa fa-cogs", subcategories: [{ name: "Clothing", url: "/vintage/clothing" }, { name: "Jewelry", url: "/vintage/jewelry" }, { name: "Decor", url: "/vintage/decor" }] },
+  { name: "All", icon: "fa fa-th-large", subcategories: [{ name: "Clothing", url: "/vintage/clothing" }, { name: "Jewelry", url: "/vintage/jewelry" }, { name: "Decor", url: "/vintage/decor" }] },
+];
+
 
   // Function to handle redirection
   function redirectToPage(url) {

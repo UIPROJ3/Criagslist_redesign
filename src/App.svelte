@@ -114,6 +114,7 @@
 
   .icon-button:hover {
     transform: scale(1.15);
+    color: #f1c40f;
     
   }
 

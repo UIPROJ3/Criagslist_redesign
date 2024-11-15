@@ -1,0 +1,108 @@
+{
+    "Categories":[
+    { 
+        "name": "Community",
+        "icon": "fa fa-users",
+        "subcategories":[
+            {
+             "name":"Activity Partners",
+             "url":"/Community/ActivityPartners"
+            },
+            {
+             "name":"Artists",
+             "url":"/Community/Artists"
+            },
+            {
+             "name":"Childcare",
+             "url":"/Community/Childcare"
+            },
+            {
+             "name":"Classes",
+             "url":"/Community/Classes"
+            },
+            {
+              "name":"Events",
+              "url":"/Community/Events"
+            },
+            {
+              "name":"General",
+              "url":"/Community/General"
+            },
+            {
+             "name":"Groups",
+             "url":"/Community/Groups"
+            },
+            {
+             "name":"Local News",
+             "url":"Community/LocalNews"
+            },
+            {
+             "name":"Lost & Found",
+             "url":"/Community/LostandFound"
+            },
+            {
+             "name":"Missed Connections",
+             "url":"/Community/MissedConnections"
+            },
+            {
+                "name":"Musicians",
+                "url":"/Community/Musicians"
+            },
+            {
+              "name":"",
+              "url":""
+            }
+        ]
+            
+    },
+    { 
+        "name": "For Sale",
+        "icon": "fa fa-tags",
+        "subcategories"
+        : [
+             
+          ]
+    },
+    { 
+        "name": "Gigs",
+        "icon": "fa fa-music",
+        "subcategories"
+        : [
+             
+          ]
+    },
+    { 
+        "name": "Housing",
+        "icon": "fa fa-home",
+        "subcategories"
+        : [
+             
+          ]
+    },
+    { 
+        "name": "Jobs",
+        "icon": "fa fa-briefcase",
+        "subcategories"
+        : [
+             
+          ]
+    },
+    { 
+        "name": "Services",
+        "icon": "fa fa-cogs",
+        "subcategories"
+        : [
+             
+          ]
+    },
+    { 
+        "name": "View All",
+        "icon": "fa fa-th-large",
+        "subcategories"
+        : [
+             
+          ]
+    }
+]    
+}
+   
