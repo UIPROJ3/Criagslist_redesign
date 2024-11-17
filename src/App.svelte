@@ -2,61 +2,61 @@
   import Sidebar from './Sidebar.svelte';
   import CategoryGrid from './CategoryGrid.svelte';
   import Footer from './Footer.svelte';
-  import Dressses from './Dressses.svelte';
-  import { Router, Route } from 'svelte-routing';
   import EventCalender from './EventCalender.svelte';
   import Location from './Location.svelte';
   import Subcategory from './Subcategory.svelte';
-  import { onMount } from 'svelte';
+  import { Router, Route, navigate } from 'svelte-routing';
   import { writable } from 'svelte/store';
+  import { onMount } from 'svelte';
   import data from './Catergories.json';
-  import { navigate } from 'svelte-routing';  // Import `navigate` from svelte-routing for URL changes
- 
- 
 
   let location = "Cincinnati";
   let latestEntries = [
-    { title: 'New Post 1', description: 'Description for post 1', url: '/post1', imageUrl: 'https://th.bing.com/th/id/R.71d6e4a4a6af50a79d703c3497a59fd4?rik=nUdGL7dKySrZMA&riu=http%3a%2f%2fpngimg.com%2fuploads%2ftv%2ftv_PNG39283.png&ehk=tfjPnaTFysWqNQUTpisRtLCrLMEvGF6aYDl8EywP6Fo%3d&risl=1&pid=ImgRaw&r=0' },
-    { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://th.bing.com/th/id/R.9f470c1ea9868b206be744756fe071d9?rik=MAWhTt9BgYKQOg&riu=http%3a%2f%2f4.bp.blogspot.com%2f-CpCgJnQsY04%2fUZ1suwOlNJI%2fAAAAAAAAEP8%2fR06pW0W7xNY%2fs1600%2flg14.jpg&ehk=FQshttk439sr2Q98M4kM2B3%2bMsO4%2fLgEUhWmhTebmSg%3d&risl=&pid=ImgRaw&r=0' },
+    { title: 'New Post 1', description: 'Description for post 1', url: '/post1', imageUrl: 'https://via.placeholder.com/200' },
+    { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
     { title: 'New Post 3', description: 'Description for post 3', url: '/post3', imageUrl: 'https://via.placeholder.com/200' }
   ];
+  
   let header;
   export const headerHeight = writable(0);
+  let selectedCategory = JSON.parse(localStorage.getItem("selectedCategory")) || null;
+  let selectedSubcategory = JSON.parse(localStorage.getItem("selectedSubcategory")) || null;
+  let isDropdownOpen = false;
+  let hoveredCategory = null;
 
-  // Function to calculate and set header height
+  // Calculate and set header height
   const calculateHeaderHeight = () => {
     if (header) {
       headerHeight.set(header.offsetHeight);
     }
   };
- 
- 
-
-  // Retrieve saved breadcrumb state from localStorage
-  
-
-
-  export let selectedCategory = JSON.parse(localStorage.getItem("selectedCategory"));
-  export let selectedSubcategory = JSON.parse(localStorage.getItem("selectedSubcategory"));
 
   // Update breadcrumb and browser history
+  
   function updateBreadcrumb(category, subcategory = null) {
     selectedCategory = category;
     selectedSubcategory = subcategory;
 
-    // Save breadcrumb state to localStorage
+    // Save the selected category and subcategory to localStorage
     localStorage.setItem("selectedCategory", JSON.stringify(category));
-    localStorage.setItem("selectedSubcategory", JSON.stringify(subcategory));
-
-    // Add the new state to the history stack using pushState
-    const newUrl = subcategory ? subcategory.url : category.subcategories[0].url;
-    window.history.pushState({ category, subcategory }, '', newUrl);
-
-    // Update the URL using navigate
-    navigate(newUrl);
+    if (subcategory) {
+      localStorage.setItem("selectedSubcategory", JSON.stringify(subcategory));
+      navigate(subcategory.url); // Navigate to the subcategory's URL
+      window.history.pushState(
+        { category, subcategory },
+        '',
+        subcategory.url
+      );
+    } else {
+      localStorage.removeItem("selectedSubcategory");
+      navigate(category.url); // Navigate to the category's main page or home
+      window.history.pushState({ category }, '', category.url);
+    }
   }
 
-  // Handle back navigation using popstate
+
+  
+  // Handle back navigation
   window.addEventListener('popstate', (event) => {
     if (event.state) {
       selectedCategory = event.state.category;
@@ -65,36 +65,24 @@
       selectedCategory = null;
       selectedSubcategory = null;
     }
-    // Update breadcrumbs or any UI based on the new state
   });
-
-  // Function to redirect to a specific page
-  function redirectToPage(url) {
-    window.location.href = url;
-  }
-  let isDropdownOpen = false;
-  let hoveredCategory = null;
 
   // Toggle dropdown visibility
   function toggleDropdown(category) {
     isDropdownOpen = true;
     selectedCategory = category;
   }
-  
 
-  // Close the dropdown
   function closeDropdown() {
     isDropdownOpen = false;
   }
 
-  // Recalculate height on mount and resize
   onMount(() => {
     calculateHeaderHeight();
     window.addEventListener('resize', calculateHeaderHeight);
     return () => window.removeEventListener('resize', calculateHeaderHeight);
   });
 </script>
-
 
 <Router>
   <main>
@@ -108,7 +96,6 @@
               <i class="fa fa-search"></i>
             </button>
           </div>
-  
           <div class="header-actions">
             <button class="icon-button">Post</button>
             <button class="icon-button">Sign In</button>
@@ -141,7 +128,7 @@
                 <span class="breadcrumb active" on:click={() => { 
                   selectedSubcategory = null; 
                   localStorage.removeItem("selectedSubcategory"); 
-                  const firstSubcategoryUrl = selectedCategory.subcategories[0]?.url || "/"; 
+                  const firstSubcategoryUrl = selectedCategory.url || "/"; 
                   navigate(firstSubcategoryUrl); 
                   window.history.pushState({ category: selectedCategory, subcategory: null }, '', firstSubcategoryUrl); // Update history
                 }}>
@@ -156,88 +143,94 @@
               {/if}
             {/if}
           </div>
-        </div>
-      <div class="navbar">
-        {#each data.Categories as category}
-          <div class="category-card" on:click={() => updateBreadcrumb(category)} on:mouseenter={() => hoveredCategory = category} on:mouseleave={() => hoveredCategory = null}>
-            
-            <p> <i class={category.icon}></i> {category.name}</p>
-            <div class="dropdown">
-              {#each category.subcategories as subcategory}
-                <div class="subcategory-item" on:click={(event) => { event.stopPropagation(); updateBreadcrumb(category, subcategory); }}>
-                  {subcategory.name}
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/each}
-      </div>
-      {#if isDropdownOpen || hoveredCategory}
-        <div class="overlay" on:click={closeDropdown} ></div>
-      {/if}
-      
-    </div>
-      
-
-    <Route path="/" let:params>
-      <div class="content">
-            
-        
-        
-         <div class="latest-entries">
-            <h2>Latest Entries</h2>
-            <div class="card-container">
-              {#each latestEntries as entry}
-                <div class="card">
-                  <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                  <a href={entry.url} class="card-title">{entry.title}</a>
-                  <p class="card-description">{entry.description}</p>
-                  <button 
-                  class="like-button {entry.liked ? 'liked' : ''}" 
-                  on:click={() => likePost(post.id)}
-                >
-                  {entry.liked ? 'Unlike' : 'Like'}
-                </button>
-                </div>
-              {/each}
-            </div>
-            <h2>Latest Entries</h2>
-            <div class="card-container">
-              {#each latestEntries as entry}
-                <div class="card">
-                  <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                  <a href={entry.url} class="card-title">{entry.title}</a>
-                  <p class="card-description">{entry.description}</p>
-                </div>
-              {/each}
-            </div>
-            <h2>Latest Entries</h2>
-            <div class="card-container">
-              {#each latestEntries as entry}
-                <div class="card">
-                  <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                  <a href={entry.url} class="card-title">{entry.title}</a>
-                  <p class="card-description">{entry.description}</p>
-                </div>
-              {/each}
-            </div>
-          </div>
           
-          <EventCalender/>
-          <Location/>
-    </Route>
-    <Route path="/Community/Artists" let:params>
-        <Subcategory/>
-    </Route>
-        
-        <!-- Example Route for 'Dresses' Component -->
-  </div>
+        </div>
 
-  <Footer />
-    
+        <div class="navbar">
+          {#each data.Categories as category}
+            <div
+              class="category-card"
+              on:click={() => updateBreadcrumb(category)}
+              on:mouseenter={() => (hoveredCategory = category)}
+              on:mouseleave={() => (hoveredCategory = null)}
+              style:selected={selectedCategory === category ? 'background-color: yellow; color: white;' : ''}
+              >
+              <p>
+                <i class={category.icon}></i> {category.name}
+              </p>
+              {#if hoveredCategory === category}
+                <div class="dropdown">
+                  {#each category.subcategories as subcategory}
+                    <div
+                      class="subcategory-item"
+                      on:click={(event) => {
+                        event.stopPropagation();
+                        updateBreadcrumb(category, subcategory);
+                      }}
+                    >
+                      {subcategory.name}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+        
+      </div>
+      {#if hoveredCategory}
+        <div class="overlay" on:click={() => (hoveredCategory = null)}></div>
+      {/if}
+ 
+        
+      
+      <Route path="/" let:params>
+        <div class="content">
+          <div class="latest-entries">
+            <h2>Nearest Job Postings</h2>
+            <div class="card-container">
+              {#each latestEntries as entry}
+                <div class="card">
+                  <img src={entry.imageUrl} alt={entry.title} class="card-image" />
+                  <a href={entry.url} class="card-title">{entry.title}</a>
+                  <p class="card-description">{entry.description}</p>
+                </div>
+              {/each}
+            </div><br>
+              <h2>Nearest Housing </h2>
+              <div class="card-container">
+                {#each latestEntries as entry}
+                  <div class="card">
+                    <img src={entry.imageUrl} alt={entry.title} class="card-image" />
+                    <a href={entry.url} class="card-title">{entry.title}</a>
+                    <p class="card-description">{entry.description}</p>
+                  </div>
+                {/each}
+              </div><br>
+              <h2>Items for Sale </h2>
+              <div class="card-container">
+                {#each latestEntries as entry}
+                  <div class="card">
+                    <img src={entry.imageUrl} alt={entry.title} class="card-image" />
+                    <a href={entry.url} class="card-title">{entry.title}</a>
+                    <p class="card-description">{entry.description}</p>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          </div>
+          <EventCalender />
+          
+        
+      </Route>
+
+      <Route path="/Artists" let:params>
+        <Subcategory {headerHeight} />
+      </Route>
+    </div>
+    <Footer />
   </main>
 </Router>
-
 <style>
   .container {
     display: flex;
@@ -411,7 +404,7 @@
 
   /* Breadcrumb container styles */
   .breadcrumbs {
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     align-items: center;
   }
@@ -469,9 +462,9 @@
   .category-card {
     background: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
-    border-radius: 8px;
+    
     width: 200px;
-    height: 30px;
+    height: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -480,6 +473,7 @@
     cursor: pointer;
     position: relative;
     transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: bold;
   }
 
   .category-card:hover {
@@ -513,7 +507,7 @@
   .dropdown {
   display: none;
   position: absolute;
-  top: 31px;
+  top: 50px;
   left: 0; /* Align dropdown to the left edge of the page */
   min-width:300px; /* Occupy the entire width of the navbar */
   background-color: white; /* White background for dropdown */
