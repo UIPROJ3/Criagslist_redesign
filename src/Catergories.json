@@ -49,8 +49,24 @@
                 "url":"/Community/Musicians"
             },
             {
-              "name":"",
-              "url":""
+              "name":"Pets",
+              "url":"/Community/Pets"
+            },
+            {
+              "name":"Politics",
+              "url":"/Community/Politics"
+            },
+            {
+              "name":"Rants & Raves",
+              "url":"/Community/RantsandRaves"
+            },
+            {
+              "name":"Rideshares",
+              "url":"/Community/Rideshares"
+            },
+            {
+              "name":"Volunteers",
+              "url":"/Community/Volunteers"
             }
         ]
             
@@ -60,6 +76,43 @@
         "icon": "fa fa-tags",
         "subcategories"
         : [
+          {
+            "name":"Aviation",
+            "url":"/ForSale/Aviation"
+          },
+          {
+            "name":"Baby & Kids",
+            "url":"/ForSale/BabyandKids"
+          },
+          {
+            "name":"Books & Media",
+            "url":"/ForSale/BooksandMedia"
+          },
+          {
+            "name":"Business & Services",
+            "url":"/ForSale/BusinessandServices"
+          },
+          {
+            "name":"Clothing & Accessories",
+            "url":"/ForSale/ClothingandAccessories"
+          },
+          {
+            "name":"Collectibles & Antiques ",
+            "url":"/ForSale/CollectiblesandAntiques"
+          },
+          {
+            "name":"Electronics",
+            "url":"/ForSale/Electronics"
+          },
+          {
+            "name":"Furniture & Home",
+            "url":"/ForSale/FurnitureandHome"
+          },
+          {
+            "name":"Furniture & Home",
+            "url":"/ForSale/FurnitureandHome"
+          }
+
              
           ]
     },
