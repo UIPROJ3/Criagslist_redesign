@@ -10,6 +10,7 @@
   import { onMount } from 'svelte';
   import data from './Catergories.json';
     import AddPost from './AddPost.svelte';
+    import Discussion from './discussion.svelte';
 
   let location = "Cincinnati";
   let addPost = false;
@@ -32,7 +33,19 @@
       headerHeight.set(header.offsetHeight);
     }
   };
+  let scrollContainer;
 
+    const scrollLeft = () => {
+        if (scrollContainer) {
+            scrollContainer.scrollBy({ left: -300, behavior: "smooth" });
+        }
+    };
+
+    const scrollRight = () => {
+        if (scrollContainer) {
+            scrollContainer.scrollBy({ left: 300, behavior: "smooth" });
+        }
+    };
   // Update breadcrumb and browser history
   
   function updateBreadcrumb(category, subcategory = null) {
@@ -92,6 +105,8 @@
 
 
 
+
+
 // Main search function
 function searchItems(queryText, location, radius = 60) {
   // Ensure items array exists
@@ -101,7 +116,7 @@ function searchItems(queryText, location, radius = 60) {
 
   // Normalize the query text
   const lowerQuery = queryText?.toLowerCase() || "";
-
+ console.log(lowerQuery);
   // If no query is provided, return an empty array
   if (!lowerQuery) {
     return [];
@@ -115,36 +130,32 @@ function searchItems(queryText, location, radius = 60) {
     const itemCity = item?.city?.toLowerCase() || "";
 
     // Check if the query text matches name or description
-    const matchesText = itemName.includes(lowerQuery) || itemDescription.includes(lowerQuery);
-    if (!matchesText) {
-      return false; // Return early if no text match
-    }
+    const matchesText =
+      lowerQuery &&
+      (itemName.includes(lowerQuery) || itemDescription.includes(lowerQuery));
 
-    // Check location criteria (if location is provided)
+    // Location matching
     let matchesLocation = true;
     if (location) {
       if (location.lat && location.lon) {
-        // Handle lat/lon-based location matching
-        if (!item.location?.lat || !item.location?.lon) {
-          return false; // No valid item location
-        }
-        const distance = haversine(
-          location.lat, location.lon,
-          item.location.lat, item.location.lon
-        );
-        if (distance > radius) {
-          return false; // Outside the radius
+        // Lat/Lon-based location matching
+        const itemLat = item?.location?.lat;
+        const itemLon = item?.location?.lon;
+
+        if (itemLat != null && itemLon != null) {
+          const distance = haversine(location.lat, location.lon, itemLat, itemLon);
+          matchesLocation = distance <= radius; // Within radius
+        } else {
+          matchesLocation = false; // No valid item location
         }
       } else if (typeof location === "string") {
-        // Handle string-based city matching
-        if (!itemCity.includes(location.toLowerCase())) {
-          return false; // No city match
-        }
+        // City-based location matching
+        matchesLocation = itemCity.includes(location.toLowerCase());
       }
     }
 
-    // Return true only if both text and location match
-    return true;
+    // Return true if both text and location match
+    return matchesText || matchesLocation;
   });
 }
 
@@ -171,42 +182,92 @@ let searchResults = [];
 let searchQuery = '';
 let userLocation = null;
 let search = false;
+let focusedIndex = -1;
+let isSelect = false;
+let discussion = false;
 
 // Function to update search results
 function updateSearch() {
-  const location = userLocation || locationQuery; // Use user location or city query
+  const location = userLocation || locationQuery; 
+  console.log(userLocation);// Use user location or city query
   searchResults = searchItems(textQuery, location, 10);
   console.log(searchResults);
-  console.log(textQuery);
-  console.log(locationQuery);
-}
+  }
 
 // Handle Enter key press
 function handleKeyPress(event) {
-  if (event.key === 'Enter') {
-    handleSearch();
+  console.log(focusedIndex);
+    if(event.key === 'Enter' && focusedIndex==-1 && textQuery==""){
+      filteredSuggestions =[];
+    }
+    else if (event.key === 'Enter' && (focusedIndex >= 0 || (textQuery||locationQuery))) {
+      handleSearch();
+      selectSuggestion(filteredSuggestions[focusedIndex]);
+      } else if (event.key === 'ArrowDown') {
+      if (focusedIndex < filteredSuggestions.length - 1) {
+        focusedIndex += 1;
+        
+      }
+    } else if (event.key === 'ArrowUp') {
+      if (focusedIndex > 0) {
+        focusedIndex -= 1;
+      }
+    }
   }
-}
-let suggestions = ["Apple", "Banana", "Cherry", "Date", "Eggplant", "Fig", "Grape", "Honeydew"];
-  let filteredSuggestions = []; // Suggestions filtered based on input
+
+let suggestions = ["Apple", "Banana", "Cherry", "Date", "Eggplant", "Fig", "Grape", "Honeydew"];// Suggestions filtered based on input
 
 // Handle search button click
 function handleSearch() {
-  const searchUrl = `/SearchResults?query=${encodeURIComponent(textQuery)}&location=${encodeURIComponent(locationQuery)}`;
-  navigate(searchUrl); // Use `svelte-routing`'s `navigate`
-  window.history.pushState({ textQuery, locationQuery }, '', searchUrl);
-  updateSearch();
-  search = true;
-  filteredSuggestions = suggestions.filter((item) =>
+filteredSuggestions = suggestions.filter((item) =>
       item.toLowerCase().includes(textQuery.toLowerCase())
     );
+  search = true;
+  discussion= false;
+    
+  
 }
 function selectSuggestion(suggestion) {
-    textQuery = suggestion;
+    textQuery = suggestion|| textQuery;
+    const searchUrl = `/SearchResults?query=${encodeURIComponent(textQuery)}&location=${encodeURIComponent(locationQuery)}`;
+    navigate(searchUrl); // Use `svelte-routing`'s `navigate`
+    window.history.pushState({ textQuery, locationQuery }, '', searchUrl);
     filteredSuggestions = []; // Hide suggestions after selection
+    focusedIndex =-1;
     // You can also trigger a search or perform other actions here
     console.log("Selected:", suggestion);
+    console.log(textQuery);
+    isSelect = true;
+    updateSearch();
   }
+
+  async function getLatLongWithNominatim(cityName) {
+  const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`;
+
+  try {
+    const response = await fetch(endpoint);
+    const data = await response.json();
+
+    if (data.length > 0) {
+      const location = data[0];
+      console.log(`Latitude: ${location.lat}, Longitude: ${location.lon}`);
+      return location;
+    } else {
+      console.error("No results found");
+      return null;
+    }
+  } catch (error) {
+    console.error("Failed to fetch geocoding data:", error);
+    return null;
+  }
+}
+
+// Example usage
+getLatLongWithNominatim(locationQuery).then(location => {
+  if (location) {
+    console.log(`Coordinates of ${locationQuery}:`, location);
+  }
+});
 
   
 
@@ -238,7 +299,42 @@ onMount(() => {
     window.addEventListener('resize', calculateHeaderHeight);
     return () => window.removeEventListener('resize', calculateHeaderHeight);
   });
+
+  // $: filteredNameSuggestions = nameSuggestions.filter(suggestion => 
+  //   suggestion.toLowerCase().includes(textQuery.toLowerCase())
+  // );
+
+  $: filteredSuggestions = textQuery === '' 
+    ? []  // If textQuery is empty, show no suggestions
+    : suggestions.filter(item => 
+        item.toLowerCase().includes(textQuery.toLowerCase())
+    ); 
+    
+    let searchContainer;
+    function handleClickOutside(event) {
+    if (!searchContainer.contains(event.target)) {
+      filteredSuggestions = [];
+    }
+  }
   
+  onMount(() => {
+    searchContainer.addEventListener("click", handleClickOutside);
+    return () => {
+      searchContainer.removeEventListener("click", handleClickOutside);
+    };
+  });
+  function redirectTo(link) {
+    window.location.href = link; // Redirects to the specified URL
+  }
+  function setDiscussion() {
+    navigate('/Discussions');
+    discussion = true;
+    console.log(discussion);
+    console.log(search);
+    search= false;
+    
+  }
+  console.log(search);
 </script>
 
 <Router>
@@ -247,18 +343,19 @@ onMount(() => {
       <div class="sticky">
         <header bind:this={header}>
           <p class="header-logo"><i class="fas fa-peace"></i> Craigslist</p>
-          <div class="search-container">
+          <div class="search-container" bind:this={searchContainer}>
             <input
               type="text"
               bind:value={textQuery}
               class="search-input"
               placeholder="Search by name or description..."
+              on:input={this}
               on:keydown={(event)=>handleKeyPress(event)}
             />
             {#if filteredSuggestions.length > 0}
             <ul class="suggestions-list">
-              {#each filteredSuggestions as suggestion}
-                <li on:click={() => selectSuggestion(suggestion)}>
+              {#each filteredSuggestions as suggestion,index}
+                <li on:click={() => selectSuggestion(suggestion)} class:focused={index === focusedIndex} >
                   {suggestion}
                 </li>
               {/each}
@@ -277,25 +374,29 @@ onMount(() => {
           </div>  
           
           <div class="header-actions"> 
-            <button class="icon-button" on:click={showpost}>Post</button>
+            <button class="icon-button">Post</button>
             <button class="icon-button">Sign In</button>
             <button class="icon-button">Register</button>
-            <button class="icon-button discussion-btn">Discussion</button>
+            <button class="icon-button discussion-btn" on:click={setDiscussion}>Discussion</button>
           </div>
         </header>
         <div class="breadcrumbs-box">
           <div class="breadcrumbs">
             {#if !selectedCategory && !selectedSubcategory}
               <span class="breadcrumb" on:click={() => { 
-                selectedCategory = null; selectedSubcategory = null;search=false; 
+                selectedCategory = null; selectedSubcategory = null;search=false;discussion=false; textQuery="";locationQuery="";filteredSuggestions=[];
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
                 window.history.pushState({}, '', '/'); // Ensure home URL is pushed to history
               }}>
                 Home</span>
-                {#if search && selectedCategory === null}
+                {#if search && selectedCategory === null && discussion === false}
                 <span class="breadcrumb-separator">›</span>
                <span class="breadcrumb active" >Search Results</span>
+              {/if}
+              {#if discussion && selectedCategory === null}
+                <span class="breadcrumb-separator">›</span>
+               <span class="breadcrumb active" >Discussion</span>
               {/if}
               
             {:else if selectedCategory}
@@ -304,13 +405,13 @@ onMount(() => {
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
                 window.history.pushState({}, '', '/'); 
-                search=false;// Ensure home URL is pushed to history
+                search=false; discussion=false; filteredSuggestions=[]; textQuery="";locationQuery="";// Ensure home URL is pushed to history
               }}>
                 Home
               </span>
               
               <span class="breadcrumb-separator">›</span>
-              {#if selectedSubcategory && !search}
+              {#if selectedSubcategory && !search && !discussion}
                 <span class="breadcrumb active" on:click={() => { 
                   selectedSubcategory = null; 
                   localStorage.removeItem("selectedSubcategory"); 
@@ -324,8 +425,10 @@ onMount(() => {
                 <span class="breadcrumb active">
                   {selectedSubcategory.name}
                 </span>
-              {:else if search && (selectedCategory || selectedSubcategory)}
+              {:else if search && (selectedCategory || selectedSubcategory) && !discussion}
               <span class="breadcrumb active" >Search Results</span>
+              {:else if discussion && (selectedCategory || selectedSubcategory) && !search}
+              <span class="breadcrumb active" >Discussion</span>
               
               {:else}
                 <span class="breadcrumb active">{selectedCategory.name}</span>
@@ -335,7 +438,7 @@ onMount(() => {
           
         </div>
         
-        {#if !search}
+        {#if !search && !discussion}
         <div class="navbar">
           {#each data.Categories as category}
             <div
@@ -385,6 +488,7 @@ onMount(() => {
                 </div>
               {/each}
             </div><br>
+            <Location/>
               <h2>Nearest Housing </h2>
               <div class="card-container">
                 {#each latestEntries as entry}
@@ -405,9 +509,11 @@ onMount(() => {
                   </div>
                 {/each}
               </div>
+              
             </div>
           </div>
           <EventCalender />
+          
           
         
       </Route>
@@ -435,6 +541,9 @@ onMount(() => {
         </div>
         
         
+      </Route>
+      <Route path="/Discussions">
+       <Discussion/>
       </Route>
       
     </div>
@@ -559,6 +668,8 @@ onMount(() => {
     border: 2px solid black;
     border-left:none;
     padding:15px;
+    margin-right: 2px;
+    border-radius: 10px;
   
   }
 
@@ -600,7 +711,7 @@ onMount(() => {
     gap: 20px;
     flex-wrap: wrap;
   }
-
+  
   .card {
     background-color: #FFFFFF;
     border: 1px solid #DDD;
@@ -874,6 +985,10 @@ onMount(() => {
   }
 
   .suggestions-list li:hover {
+    background-color: #f0f0f0;
+  }
+
+  .suggestions-list li.focused {
     background-color: #f0f0f0;
   }
 </style>
