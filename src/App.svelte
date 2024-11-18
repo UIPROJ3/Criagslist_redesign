@@ -9,8 +9,10 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import data from './Catergories.json';
+    import AddPost from './AddPost.svelte';
 
   let location = "Cincinnati";
+  let addPost = false;
   let latestEntries = [
     { title: 'New Post 1', description: 'Description for post 1', url: '/post1', imageUrl: 'https://via.placeholder.com/200' },
     { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
@@ -76,7 +78,11 @@
   function closeDropdown() {
     isDropdownOpen = false;
   }
-
+  
+  function showpost()
+  {
+    addPost = true;
+  }
   onMount(() => {
     calculateHeaderHeight();
     window.addEventListener('resize', calculateHeaderHeight);
@@ -97,7 +103,7 @@
             </button>
           </div>
           <div class="header-actions">
-            <button class="icon-button">Post</button>
+            <button class="icon-button" on:click={showpost}>Post</button>
             <button class="icon-button">Sign In</button>
             <button class="icon-button">Register</button>
             <button class="icon-button discussion-btn">Discussion</button>
@@ -153,16 +159,12 @@
               on:click={() => updateBreadcrumb(category)}
               on:mouseenter={() => (hoveredCategory = category)}
               on:mouseleave={() => (hoveredCategory = null)}
-              style:selected={selectedCategory === category ? 'background-color: yellow; color: white;' : ''}
-              >
-              <p>
-                <i class={category.icon}></i> {category.name}
-              </p>
-              {#if hoveredCategory === category}
-                <div class="dropdown">
+              style:selected={selectedCategory === category ? 'background-color: yellow; color: white;' : ''}>
+              <p><i class={category.icon}></i> {category.name}</p>
+              {#if category.subcategories}
+              <div class="dropdown">
                   {#each category.subcategories as subcategory}
-                    <div
-                      class="subcategory-item"
+                    <div class="subcategory-item"
                       on:click={(event) => {
                         event.stopPropagation();
                         updateBreadcrumb(category, subcategory);
@@ -171,9 +173,10 @@
                       {subcategory.name}
                     </div>
                   {/each}
-                </div>
+              </div>
               {/if}
             </div>
+          
           {/each}
         </div>
         
@@ -232,6 +235,7 @@
   </main>
 </Router>
 <style>
+  
   .container {
     display: flex;
     flex-direction: column;
@@ -241,7 +245,6 @@
   }
 
   header {
-    background-color: white;
     display: flex;
     align-items: center;
     padding: 10px 30px;
@@ -249,6 +252,10 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
+    -webkit-background-clip: border-box; /* For Chrome, Safari */
+    background-clip: border-box; /* For Firefox */
+    color: transparent;
   }
   .sticky{
     position:sticky;
@@ -259,10 +266,9 @@
   .header-logo {
     font-size: 1.5rem;
     font-weight: bold;
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip: text; /* For Chrome, Safari */
-    background-clip: text; /* For Firefox */
-    color: transparent; /* Makes the text color transparent so the gradient shows */
+    
+    color:white;
+     /* Makes the text color transparent so the gradient shows */
 }
 
 
@@ -273,10 +279,7 @@
   }
 
   .icon-button {
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip:border-box; /* For Chrome, Safari */
-    background-clip:border-box; /* For Firefox */
-    color: white;
+    background-color: white;
     border: none;
     border-radius: 5px;
     padding: 8px 15px;
@@ -292,7 +295,7 @@
   }
 
   .discussion-btn {
-    background-color: #4B2F73;
+    background-color:white;
   }
 
   .content {
@@ -306,12 +309,13 @@
     align-items: center;
     border: 1px solid #5F6A8A;
     border-radius: 10px;
-    margin: 20px 0;
+    margin-left: 50px;
     width: 100%;
     max-width: 600px;
     /* Remove right and add left */
     left: 0;
     position: relative; /* Ensure proper positioning */
+    background-color: white;
 }
 
   .search-input {
@@ -327,12 +331,10 @@
     
     border: none;
     cursor: pointer;
-    font-size: 20px;
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip:text; /* For Chrome, Safari */
-    background-clip:text; /* For Firefox */
-    color:transparent;
+    font-size: 20px;/* For Firefox */
+    color:black;
     padding-right: 10px;
+    background-color: white;
   }
  .search-icon:hover{
   background-color: grey;

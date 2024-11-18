@@ -3,7 +3,7 @@
 
   // Sample events data
   let events = [
-    { title: 'Music Concert', date: '2024-11-16', description: 'A fun music concert featuring top artists.', image: '/assets/music-concert.jpg' },
+    { title: 'Music Concert', date: '2024-11-16', description: 'A fun music concert featuring top artists.', image: '' },
     { title: 'Tech Conference', date: '2024-11-18', description: 'Join the latest in tech innovation talks.', image: '/assets/tech-conference.jpg' },
     { title: 'Art Exhibition', date: '2024-11-20', description: 'An art exhibition showcasing modern art.', image: '/assets/art-exhibition.jpg' },
   ];
@@ -79,16 +79,16 @@
   }
 
   .calendar-day:hover {
-    background-color: #4CAF50;
+    background-color: rgb(206 68 164);
     color: white;
-    border-color: #388E3C;
+    border-color:rgb(206 68 164);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .calendar-day.selected {
-    background-color: #388E3C;
+    background-color:rgb(206 68 164);
     color: white;
-    border-color: #4CAF50;
+    border-color:rgb(206 68 164);
   }
 
   .calendar-header {
@@ -106,7 +106,7 @@
   }
 
   .calendar-header button {
-    background-color: #00796b;
+    background-color:rgb(206 68 164);
     color: white;
     border: none;
     padding: 8px 16px;
@@ -116,7 +116,7 @@
   }
 
   .calendar-header button:hover {
-    background-color: #004d40;
+    background-color: rgb(206 68 164);
   }
 
   .event-list {
