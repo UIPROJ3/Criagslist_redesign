@@ -88,7 +88,6 @@
   .calendar-container {
     display: flex;
     gap: 20px;
-    font-family: Arial, sans-serif;
   }
 
   .calendar {
@@ -158,7 +157,9 @@
   .events h3 {
     margin-top: 0;
     text-align: center;
-    color: rgb(206 68 164);
+    color: black;
+    
+    
   }
 
   .event {
@@ -223,7 +224,7 @@
   .modal {
     background: white;
     border-radius: 10px;
-    padding: 20px;
+    padding: 30px;
     width: 400px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -238,7 +239,7 @@
 
   .modal h4 {
     margin: 10px 0;
-    color: rgb(206 68 164);
+    color:black;
   }
 
   .modal p {
@@ -249,16 +250,21 @@
 
   .modal-close {
     position: absolute;
-    bottom:20px;
-    right: 10px;
-    background: none;
-    border: 1px solid #ddd;
-    font-size: 20px;
+    bottom:10px;
+    right: 210px;
+    background-color:#781097;
+    border: 1px solid #781097;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
+    color:white;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-weight: bold;
   }
 
   .modal-close:hover {
-    color: red;
+    
+    transform: scale(1.15);
   }
 </style>
 
@@ -290,7 +296,7 @@
 
   <!-- Events Section -->
   <div class="events">
-    <h3>Events on {selectedDate.toDateString()}</h3>
+    <h3>Events on {selectedDate.toDateString().split(' ').slice(1).join(' ')}</h3>
     {#if events[selectedDate.toISOString().split("T")[0]]}
       {#each events[selectedDate.toISOString().split("T")[0]] as event}
         <div class="event" on:click={() => openEventDetails(event)}>

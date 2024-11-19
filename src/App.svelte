@@ -1,51 +1,89 @@
 <script>
-  import Sidebar from './Sidebar.svelte';
-  import CategoryGrid from './CategoryGrid.svelte';
   import Footer from './Footer.svelte';
   import EventCalender from './EventCalender.svelte';
-  import Location from './Location.svelte';
   import Subcategory from './Subcategory.svelte';
   import { Router, Route, navigate } from 'svelte-routing';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import data from './Catergories.json';
-    import AddPost from './AddPost.svelte';
     import Discussion from './discussion.svelte';
 
   let location = "Cincinnati";
   let addPost = false;
   let latestEntries = [
-    { title: 'New Post 1', description: 'Description for post 1', url: '/post1', imageUrl: 'https://via.placeholder.com/200' },
+    { title: 'Aquatic Instructor (Full Time)', description: 'Rate of pay: $15/hr with full time benefits', url: '/post1', imageUrl: 'https://images.craigslist.org/00H0H_9ewdwFtMufs_07V063_600x450.jpg',location:'Dayton',date:'Nov 10',liked:'false'},
+    { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
+    { title: 'New Post 3', description: 'Description for post 3', url: '/post3', imageUrl: 'https://via.placeholder.com/200' },{ title: 'Aquatic Instructor (Full Time)', description: 'Rate of pay: $15/hr with full time benefits', url: '/post1', imageUrl: 'https://images.craigslist.org/00H0H_9ewdwFtMufs_07V063_600x450.jpg',location:'Dayton',date:'Nov 10',liked:'false'},
     { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
     { title: 'New Post 3', description: 'Description for post 3', url: '/post3', imageUrl: 'https://via.placeholder.com/200' }
+  
   ];
   
   let header;
+  let isScrolling = false;
+  let isHovered = false;
+  let isOverflowing = false;
+
+  // Function to check if the container is overflowing
+  function checkOverflow() {
+    if (scrollContainer) {
+      // Check if the scrollable content is larger than the container
+      isOverflowing = scrollContainer.scrollWidth > scrollContainer.clientWidth;
+    }
+  }
+
+  // Call checkOverflow when the component mounts and when the window resizes
+
+  onMount(() => {
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);  // Recheck on window resize
+  });
+
+  // Clean up on component destruction
+  import { onDestroy } from 'svelte';
+  onDestroy(() => {
+    window.removeEventListener('resize', checkOverflow);
+  });
+
+  let scrollTimeout;
   export const headerHeight = writable(0);
   let selectedCategory = JSON.parse(localStorage.getItem("selectedCategory")) || null;
   let selectedSubcategory = JSON.parse(localStorage.getItem("selectedSubcategory")) || null;
   let isDropdownOpen = false;
   let hoveredCategory = null;
 
+
+  function toggleLike(entry) {
+    entry.liked = !entry.liked;
+    console.log(entry.liked);
+    latestEntries = [...latestEntries]; 
+  }
+  let scrollContainer;
+
+  function scrollLeft() {
+    scrollContainer.scrollBy({
+      left: -200, // Adjust the value as needed
+      behavior: 'smooth'
+    });
+  }
+
+  function scrollRight() {
+    scrollContainer.scrollBy({
+      left: 200, // Adjust the value as needed
+      behavior: 'smooth'
+    });
+  }
+
+  // Function to delete an entry
+  function deleteEntry(entry) {
+    latestEntries = latestEntries.filter(e => e !== entry);
+  }
   // Calculate and set header height
   const calculateHeaderHeight = () => {
     if (header) {
       headerHeight.set(header.offsetHeight);
     }
   };
-  let scrollContainer;
-
-    const scrollLeft = () => {
-        if (scrollContainer) {
-            scrollContainer.scrollBy({ left: -300, behavior: "smooth" });
-        }
-    };
-
-    const scrollRight = () => {
-        if (scrollContainer) {
-            scrollContainer.scrollBy({ left: 300, behavior: "smooth" });
-        }
-    };
   // Update breadcrumb and browser history
   
   function updateBreadcrumb(category, subcategory = null) {
@@ -181,10 +219,10 @@ let locationQuery = '';
 let searchResults = [];
 let searchQuery = '';
 let userLocation = null;
-let search = false;
+let search;
 let focusedIndex = -1;
 let isSelect = false;
-let discussion = false;
+let discussion;
 
 // Function to update search results
 function updateSearch() {
@@ -344,35 +382,36 @@ onMount(() => {
         <header bind:this={header}>
           <p class="header-logo"><i class="fas fa-peace"></i> Craigslist</p>
           <div class="search-container" bind:this={searchContainer}>
-            <input
-              type="text"
-              bind:value={textQuery}
-              class="search-input"
-              placeholder="Search by name or description..."
-              on:input={this}
-              on:keydown={(event)=>handleKeyPress(event)}
-            />
-            {#if filteredSuggestions.length > 0}
-            <ul class="suggestions-list">
-              {#each filteredSuggestions as suggestion,index}
-                <li on:click={() => selectSuggestion(suggestion)} class:focused={index === focusedIndex} >
-                  {suggestion}
-                </li>
-              {/each}
-            </ul>
-          {/if}
-            <input
-              type="text"
-              bind:value={locationQuery}
-              class="search-input location-query"
-              on:keydown={(event)=>handleKeyPress(event)}
-              placeholder="Search by city or location..."
-            />
-            <button class="search-icon">
-              <i class="fa fa-search" on:click={handleSearch}></i>
-            </button>
-          </div>  
+            <!-- Search Query Input -->
+            <div style="flex: 1; display: flex; align-items: center;">
+              <i class="fa fa-search" style="margin: 0 10px; color: #ccc;"></i>
+              <input
+                type="text"
+                bind:value={textQuery}
+                class="search-input"
+                placeholder="Search Craigslist"
+                on:input={this}
+                on:keydown={(event) => handleKeyPress(event)}
+              />
+            </div>
           
+            <!-- Location Input -->
+            <div style="flex: 1; display: flex; align-items: center; border-left: 1px solid #ccc;">
+              <i class="fa fa-map-marker-alt" style="margin: 0 10px; color: #555;"></i>
+              <input
+                type="text"
+                bind:value={locationQuery}
+                class="search-input location-query"
+                placeholder="Cincinnati"
+                on:keydown={(event) => handleKeyPress(event)}
+              />
+            </div>
+          
+            <!-- Search Button -->
+            <button class="search-icon">
+              <i class="fa fa-search"></i>
+            </button>
+          </div>
           <div class="header-actions"> 
             <button class="icon-button">Post</button>
             <button class="icon-button">Sign In</button>
@@ -478,40 +517,43 @@ onMount(() => {
       <Route path="/" let:params>
         <div class="content">
           <div class="latest-entries">
-            <h2>Nearest Job Postings</h2>
-            <div class="card-container">
-              {#each latestEntries as entry}
-                <div class="card">
-                  <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                  <a href={entry.url} class="card-title">{entry.title}</a>
-                  <p class="card-description">{entry.description}</p>
-                </div>
-              {/each}
-            </div><br>
-            <Location/>
-              <h2>Nearest Housing </h2>
-              <div class="card-container">
-                {#each latestEntries as entry}
-                  <div class="card">
-                    <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                    <a href={entry.url} class="card-title">{entry.title}</a>
-                    <p class="card-description">{entry.description}</p>
-                  </div>
-                {/each}
-              </div><br>
-              <h2>Items for Sale </h2>
-              <div class="card-container">
-                {#each latestEntries as entry}
-                  <div class="card">
-                    <img src={entry.imageUrl} alt={entry.title} class="card-image" />
-                    <a href={entry.url} class="card-title">{entry.title}</a>
-                    <p class="card-description">{entry.description}</p>
-                  </div>
-                {/each}
-              </div>
+            <p class="heading">Nearest Job Postings</p> 
+                <div class="card-container">
+                  {#each latestEntries as entry}
+                    <div class="card">
+                      <img src={entry.imageUrl} alt={entry.title} class="card-image" />
+                      <a href={entry.url} class="card-title">{entry.title}</a>
+                      <p class="card-description">{entry.description}</p>
               
-            </div>
-          </div>
+                      <div class="card-footer">
+                        <div class="footer-item">
+                          <i class="fas fa-map-marker-alt"></i>
+                          <span>{entry.location}</span>
+                        </div>
+                        <div class="footer-item">
+                          <span>Posted on:</span>
+                          <span>{entry.date}</span>
+                        </div>
+                      </div>
+              
+                      <div class="card-actions">
+                        <button class="like-button" on:click={() => toggleLike(entry)}>
+                          {#if entry.liked}
+                          <i class= 'fa fa-bookmark'></i>
+                          {:else}
+                          <i style="color:#781097;"class= 'fa-regular fa-bookmark dislike-button'></i>
+                          {/if}
+                        </button>
+                        <button class="delete-button" on:click={() => deleteEntry(entry)}>
+                          <i class="fa fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+           </div>
+          </div><br><br>
+          <p class="heading1">Events Calender</p>
           <EventCalender />
           
           
@@ -557,7 +599,13 @@ onMount(() => {
     flex-direction: column;
     height: auto;
     background-color: #F8F9F9;
-    font-family: Arial, sans-serif;
+  }
+  .heading1{
+    margin-left:20px;
+    font-size: 22px;
+    color:black;
+    font-weight: bold;
+  
   }
 
   header {
@@ -579,8 +627,13 @@ onMount(() => {
     z-index:1000;
   }
 
+  .heading{
+    font-size: 22px;
+    color:black;
+    font-weight: bold;
+  }
   .header-logo {
-    font-size: 1.5rem;
+    font-size: 28px;
     font-weight: bold;
     
     color:white;
@@ -600,13 +653,13 @@ onMount(() => {
     border-radius: 5px;
     padding: 8px 15px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
   }
 
   .icon-button:hover {
     transform: scale(1.15);
-    color: #f1c40f;
+    background-color:rgb(230, 228, 228);
     
   }
 
@@ -617,23 +670,19 @@ onMount(() => {
   .content {
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding:18px;
   }
 
   .search-container {
     display: flex;
     align-items: center;
-    
-    
-    margin-left: 50px;
-  
-  
-    max-width: 600px;
-    /* Remove right and add left */
-    left: 0;
-    position: relative; /* Ensure proper positioning */
-    
-}
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 600px;
+    background-color: #fff;
+  }
+
 
   /* .search-input {
     border: 1px solid #DDD;
@@ -645,56 +694,75 @@ onMount(() => {
     margin-left:20px;
   } */
 
-  .search-icon {
+  /* .search-icon {
     
     border: none;
     cursor: pointer;
-    font-size: 20px;/* For Firefox */
+    font-size: 20px;
     padding-right: 20px;
     background-color: none;
     background:none;
-    -webkit-background-clip: border-box; /* For Chrome, Safari */
-    background-clip: border-box; /* For Firefox */
-    color: transparent;
-   
-  } 
+   } 
+   */
   .search-container {
     display: flex;
     align-items: center;
+    margin-left:70px;
   }
 
   .search-input {
-     /* Space between input fields */
-    border: 2px solid black;
-    border-left:none;
-    padding:15px;
-    margin-right: 2px;
-    border-radius: 10px;
-  
+    border: none;
+    outline: none;
+    padding: 10px;
+    font-size: 16px;
+    flex: 1;
   }
 
-  .search-input.location-query {
-    border: 2px solid black; 
-    }
-
-  /* .search-icon {
-    padding: 8px;
-    background-color: #f0f0f0;
+  
+  .suggestions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    background-color: #fff;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    width: 100%;
+    z-index: 10;
+  }
+
+  .suggestions-list li {
+    padding: 8px 10px;
     cursor: pointer;
-  } */
+  }
+
+  .suggestions-list li.focused {
+    background-color: #f0f0f0;
+  }
+
+  /* Search Button */
+  .search-icon {
+    background-color: grey;
+    color: black;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+  }
 
   .search-icon i {
-    font-size: 30px;
-    color:white;
-
+    color: white;
+    font-size: 18px;
   }
- .search-icon:hover{
-  background-color: grey;
- }
+  
+  .search-icon :hover{
+    color:#555;
+  }
+
   .latest-entries {
-    padding: 20px;
+    padding: 10px;
     background-color: #FFFFFF;
     border-radius: 8px;
     margin-top: 20px;
@@ -706,46 +774,14 @@ onMount(() => {
     margin-bottom: 10px;
   }
 
-  .card-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
   
-  .card {
-    background-color: #FFFFFF;
-    border: 1px solid #DDD;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 200px;
-    padding: 15px;
-    transition: transform 0.2s;
-  }
-
-  .card:hover {
+  
+  
+  /* .card:hover {
     transform: scale(1.05);
-  }
+  } */
 
-  .card-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-
-  .card-title {
-    font-weight: bold;
-    color: #4B2F73;
-    text-decoration: none;
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-  }
-
-  .card-description {
-    font-size: 0.9rem;
-    color: #333333;
-  }
+  
   .breadcrumbs-box {
     padding: 15px;
     background-color: #fff; /* White background for contrast */
@@ -834,7 +870,7 @@ onMount(() => {
 
   .category-card:hover {
     transform: translateY(-5px); /* Lift effect */
-    color: #f1c40f; /* Change text color to golden-yellow */
+    background-color: rgb(230, 228, 228);; /* Change text color to golden-yellow */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Add soft shadow */
 }
 
@@ -848,10 +884,10 @@ onMount(() => {
     margin-bottom: 10px;
   }
   
-
+/* 
 .category-card:hover i {
-  color: #c9b2ce; /* Apply hover color to the icon */
-}
+  color: rgb(230, 228, 228);
+} */
 
   .category-card div {
     font-size: 16px;
@@ -932,8 +968,7 @@ onMount(() => {
 
 /* Subcategory hover effect */
 .subcategory-item:hover {
-  background-color: #f7f7f7; /* Light hover background */
-  color: #f1c40f; /* Change text color on hover */
+  background-color:rgb(230, 228, 228);; /* Light hover background */ /* Change text color on hover */
   padding-left: 25px; /* Indentation effect */
 }
 
@@ -962,33 +997,161 @@ onMount(() => {
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
     z-index: 5; /* Ensure overlay is above all other content */
   }
-  .suggestions-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    border: 1px solid #ccc;
-    border-top: none;
-    background-color: #fff;
-    max-height: 200px;
-    overflow-y: auto;
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-    z-index:2000;
-    color:black;
-  }
+  
 
-  .suggestions-list li {
-    padding: 8px;
-    cursor: pointer;
-  }
+/* .card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+} */
 
-  .suggestions-list li:hover {
-    background-color: #f0f0f0;
-  }
+.card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+}
 
-  .suggestions-list li.focused {
-    background-color: #f0f0f0;
-  }
+.card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 16px;
+  color: #333;
+  text-decoration: none;
+}
+
+.card-description {
+  margin: 0 16px 16px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-top: 1px solid #eee;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-location::before {
+   /* Replace with a location icon from your library if desired */
+  font-size: 1rem;
+}
+
+.icon-date::before {
+  /* Replace with a calendar icon from your library if desired */
+  font-size: 1rem;
+}
+
+
+.scroll-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.card-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 1rem;
+  scroll-behavior: smooth;
+ 
+  /* Hide scrollbar in a clean way */
+ /* For Firefox */
+}
+
+.card-container::-webkit-scrollbar {
+  width: 3px; /* Set scrollbar width */
+}
+
+.card-container::-webkit-scrollbar-thumb {
+  background-color:white; /* Set the color of the scrollbar thumb */
+  border-radius: 3px; /* Rounded corners for the scrollbar thumb */
+}
+
+.card-container::-webkit-scrollbar-thumb:hover {
+  background-color: white; /* Darker color when hovered */
+}
+
+.card-container::-webkit-scrollbar-track {
+  background:white; /* Light track color */
+  border-radius: 3px; /* Rounded corners for the track */
+}
+
+.card-container::-webkit-scrollbar-track:hover {
+  background-color:white; /* Darker track color when hovered */
+}
+
+.card-container::-webkit-scrollbar-corner {
+  background-color: transparent; /* Remove the corner square */
+}
+.card-container::-webkit-scrollbar-button {
+  display: none; /* Hide the arrows */
+}
+
+
+.card {
+  min-width: 250px; /* Ensure cards have a consistent width */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  position: relative;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.like-button, .delete-button {
+  color:#781097;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background: none;
+  font-size: 20px;
+}
+
+.like-button:hover, .delete-button:hover {
+  color:#560d6c;
+  transform: scale(1.05);
+}
+.dislike-button:hover{
+color:#bcbcba;
+transform: scale(1.05);
+}
+
+
+
+
+
+/* Styling for liked state */
+
+
 </style>

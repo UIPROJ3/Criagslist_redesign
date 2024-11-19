@@ -77,20 +77,20 @@
         <ul class="list">
             <h3>About Us</h3>
             <li><a href="https://www.craigslist.org/about/">About</a></li>
-            <li><a href="#">Best</a></li>
-            <li><a href="#">Jobs/Career</a></li>
-            <li><a href="#">Latest News</a></li>
-            <li><a href="#">System Status</a></li>
-            <li><a href="#">Charity</a></li>
-            <li><a href="#">Newmark Philanthropies</a></li>
+            <li><a href="https://www.craigslist.org/about/best/all/">Best</a></li>
+            <li><a href="https://www.craigslist.org/about/craigslist_is_hiring">Jobs/Career</a></li>
+            <li><a href="https://www.craigslist.org/about/whats-new">Latest News</a></li>
+            <li><a href="https://www.craigslist.org/about/help/system-status">System Status</a></li>
+            <li><a href="https://www.craigslistfund.org/">Charity</a></li>
+            <li><a href="https://craignewmarkphilanthropies.org/">Newmark Philanthropies</a></li>
         </ul>
 
         <!-- Help Section -->
         <ul class="list">
             <h3>Support</h3>
-            <li><a href="#">Help</a></li>
-            <li><a href="#">Scams & Fraud</a></li>
-            <li><a href="#">Personal Safety</a></li>
+            <li><a href="https://www.craigslist.org/about/help/">Help</a></li>
+            <li><a href="https://www.craigslist.org/about/help/safety/scams/">Scams & Fraud</a></li>
+            <li><a href="https://www.craigslist.org/about/help/safety/">Personal Safety</a></li>
         </ul>
     </div>
 
