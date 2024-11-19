@@ -1,7 +1,6 @@
 <script>
   import Footer from './Footer.svelte';
   import EventCalender from './EventCalender.svelte';
-  import Subcategory from './Subcategory.svelte';
   import { Router, Route, navigate } from 'svelte-routing';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
@@ -251,26 +250,23 @@ function handleSearch() {
   search = true;
   discussion= false;
   
-    
-  
-}
-function selectSuggestion(suggestion) {
-    textQuery = suggestion|| textQuery;
     const searchUrl = `/SearchResults?query=${encodeURIComponent(textQuery)}&location=${encodeURIComponent(locationQuery)}`;
     navigate(searchUrl); // Use `svelte-routing`'s `navigate`
     window.history.pushState({ textQuery, locationQuery }, '', searchUrl);
      // Hide suggestions after selection
     
     // You can also trigger a search or perform other actions here
-    console.log("Selected:", suggestion);
     console.log(textQuery);
-    isSelect = true;
     updateSearch();
-  }
+  
+    
+  
+}
+
 
   
 
-// Example usage
+
 
 
   
@@ -516,9 +512,7 @@ onMount(() => {
         
       </Route>
 
-      <Route path="/Artists" let:params>
-        <Subcategory {headerHeight} />
-      </Route>
+      
 
       <Route path="/SearchResults" let:params>
         <p>Search Results</p>
