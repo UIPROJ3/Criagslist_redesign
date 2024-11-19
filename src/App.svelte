@@ -11,12 +11,12 @@
   let location = "Cincinnati";
   let addPost = false;
   let latestEntries = [
-    { title: 'Aquatic Instructor (Full Time)', description: 'Rate of pay: $15/hr with full time benefits', url: '/post1', imageUrl: 'https://images.craigslist.org/00H0H_9ewdwFtMufs_07V063_600x450.jpg',location:'Dayton',date:'Nov 10',liked:'false'},
-    { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
-    { title: 'New Post 3', description: 'Description for post 3', url: '/post3', imageUrl: 'https://via.placeholder.com/200' },{ title: 'Aquatic Instructor (Full Time)', description: 'Rate of pay: $15/hr with full time benefits', url: '/post1', imageUrl: 'https://images.craigslist.org/00H0H_9ewdwFtMufs_07V063_600x450.jpg',location:'Dayton',date:'Nov 10',liked:'false'},
-    { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
-    { title: 'New Post 3', description: 'Description for post 3', url: '/post3', imageUrl: 'https://via.placeholder.com/200' }
-  
+    { title: 'Aquatic Instructor (Full Time)', pay:"$15/hr",employment:"Full Time",experience:"Senior Level", url: '/post1', imageUrl: 'https://images.craigslist.org/00H0H_9ewdwFtMufs_07V063_600x450.jpg',location:'Dayton',date:'Nov 10',liked:'false'},
+    { title: 'Experienced Service and Parts Manager',pay:"$30/hr",employment:"Full Time",experience:"Senior Level" , url: '/post1', imageUrl: 'https://images.craigslist.org/00m0m_95zuOYe5HH5_0g707R_600x450.jpg',location:'Illinois',date:'Nov 15',liked:'false'},
+    { title: 'Project Manager(Part time)', pay:"$30/hr",employment:"Part Time",experience:"Senior Level", url: '/post1', imageUrl: 'https://th.bing.com/th/id/OIP.u4EBes6Muu2fy7iM8igMugHaFX?w=244&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7',location:'Columbus',date:'Nov 17',liked:'false'},
+    { title: 'Apartment Leasing Consultant', pay:"$17/hr",employment:"Full Time",experience:"Some prior experience", url: '/post1', imageUrl: 'https://lewiscareers.com/wp-content/uploads/2020/11/Leasing-Agent.jpg',location:'Cleveland',date:'Today',liked:'false'},
+    { title: 'Deliver with DoorDash',pay:"$20/hr",employment:"Part Time",experience:"Good driving skills", url: '/post1', imageUrl: 'https://th.bing.com/th/id/OIP.sykEUuxSMYBKw2IYyFdvrAHaEK?w=280&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7',location:'Cincinnati',date:'Nov 16',liked:'true'}
+    
   ];
   
   let header;
@@ -118,6 +118,8 @@
       selectedCategory = null;
       selectedSubcategory = null;
     }
+    discussion=false;
+    search=false;
   });
 
   // Toggle dropdown visibility
@@ -234,34 +236,21 @@ function updateSearch() {
 
 // Handle Enter key press
 function handleKeyPress(event) {
-  console.log(focusedIndex);
-    if(event.key === 'Enter' && focusedIndex==-1 && textQuery==""){
-      filteredSuggestions =[];
-    }
-    else if (event.key === 'Enter' && (focusedIndex >= 0 || (textQuery||locationQuery))) {
+  
+    if(event.key === 'Enter'){
       handleSearch();
-      selectSuggestion(filteredSuggestions[focusedIndex]);
-      } else if (event.key === 'ArrowDown') {
-      if (focusedIndex < filteredSuggestions.length - 1) {
-        focusedIndex += 1;
-        
-      }
-    } else if (event.key === 'ArrowUp') {
-      if (focusedIndex > 0) {
-        focusedIndex -= 1;
-      }
     }
+ 
   }
 
 let suggestions = ["Apple", "Banana", "Cherry", "Date", "Eggplant", "Fig", "Grape", "Honeydew"];// Suggestions filtered based on input
 
 // Handle search button click
 function handleSearch() {
-filteredSuggestions = suggestions.filter((item) =>
-      item.toLowerCase().includes(textQuery.toLowerCase())
-    );
+
   search = true;
   discussion= false;
+  
     
   
 }
@@ -270,8 +259,8 @@ function selectSuggestion(suggestion) {
     const searchUrl = `/SearchResults?query=${encodeURIComponent(textQuery)}&location=${encodeURIComponent(locationQuery)}`;
     navigate(searchUrl); // Use `svelte-routing`'s `navigate`
     window.history.pushState({ textQuery, locationQuery }, '', searchUrl);
-    filteredSuggestions = []; // Hide suggestions after selection
-    focusedIndex =-1;
+     // Hide suggestions after selection
+    
     // You can also trigger a search or perform other actions here
     console.log("Selected:", suggestion);
     console.log(textQuery);
@@ -279,33 +268,10 @@ function selectSuggestion(suggestion) {
     updateSearch();
   }
 
-  async function getLatLongWithNominatim(cityName) {
-  const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`;
-
-  try {
-    const response = await fetch(endpoint);
-    const data = await response.json();
-
-    if (data.length > 0) {
-      const location = data[0];
-      console.log(`Latitude: ${location.lat}, Longitude: ${location.lon}`);
-      return location;
-    } else {
-      console.error("No results found");
-      return null;
-    }
-  } catch (error) {
-    console.error("Failed to fetch geocoding data:", error);
-    return null;
-  }
-}
+  
 
 // Example usage
-getLatLongWithNominatim(locationQuery).then(location => {
-  if (location) {
-    console.log(`Coordinates of ${locationQuery}:`, location);
-  }
-});
+
 
   
 
@@ -342,37 +308,25 @@ onMount(() => {
   //   suggestion.toLowerCase().includes(textQuery.toLowerCase())
   // );
 
-  $: filteredSuggestions = textQuery === '' 
-    ? []  // If textQuery is empty, show no suggestions
-    : suggestions.filter(item => 
-        item.toLowerCase().includes(textQuery.toLowerCase())
-    ); 
-    
+
     let searchContainer;
-    function handleClickOutside(event) {
-    if (!searchContainer.contains(event.target)) {
-      filteredSuggestions = [];
-    }
-  }
+   
   
-  onMount(() => {
-    searchContainer.addEventListener("click", handleClickOutside);
-    return () => {
-      searchContainer.removeEventListener("click", handleClickOutside);
-    };
-  });
+ 
   function redirectTo(link) {
     window.location.href = link; // Redirects to the specified URL
   }
   function setDiscussion() {
-    navigate('/Discussions');
     discussion = true;
+    navigate('/Discussions');
     console.log(discussion);
     console.log(search);
     search= false;
     
+    
   }
   console.log(search);
+  
 </script>
 
 <Router>
@@ -384,7 +338,7 @@ onMount(() => {
           <div class="search-container" bind:this={searchContainer}>
             <!-- Search Query Input -->
             <div style="flex: 1; display: flex; align-items: center;">
-              <i class="fa fa-search" style="margin: 0 10px; color: #ccc;"></i>
+              <i class="fa fa-search" style="margin: 0 10px;color: #777;;"></i>
               <input
                 type="text"
                 bind:value={textQuery}
@@ -423,7 +377,7 @@ onMount(() => {
           <div class="breadcrumbs">
             {#if !selectedCategory && !selectedSubcategory}
               <span class="breadcrumb" on:click={() => { 
-                selectedCategory = null; selectedSubcategory = null;search=false;discussion=false; textQuery="";locationQuery="";filteredSuggestions=[];
+                selectedCategory = null; selectedSubcategory = null;search=false;discussion=false; textQuery="";locationQuery="";
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
                 window.history.pushState({}, '', '/'); // Ensure home URL is pushed to history
@@ -444,7 +398,7 @@ onMount(() => {
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
                 window.history.pushState({}, '', '/'); 
-                search=false; discussion=false; filteredSuggestions=[]; textQuery="";locationQuery="";// Ensure home URL is pushed to history
+                search=false; discussion=false; textQuery="";locationQuery="";// Ensure home URL is pushed to history
               }}>
                 Home
               </span>
@@ -517,13 +471,15 @@ onMount(() => {
       <Route path="/" let:params>
         <div class="content">
           <div class="latest-entries">
-            <p class="heading">Nearest Job Postings</p> 
+            <p class="heading">Latest Job Postings</p> 
                 <div class="card-container">
                   {#each latestEntries as entry}
                     <div class="card">
                       <img src={entry.imageUrl} alt={entry.title} class="card-image" />
                       <a href={entry.url} class="card-title">{entry.title}</a>
-                      <p class="card-description">{entry.description}</p>
+                      <p class="card-description"><b>Employment Type:</b> {entry.employment}</p>
+                      <p class="card-description"><b>Compensation:</b> {entry.pay}</p>
+                      <p class="card-description"><b>Required Experience:</b> {entry.experience}</p>
               
                       <div class="card-footer">
                         <div class="footer-item">
@@ -1005,16 +961,6 @@ onMount(() => {
   gap: 16px;
 } */
 
-.card {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-}
 
 .card-image {
   width: 100%;
@@ -1025,13 +971,15 @@ onMount(() => {
 .card-title {
   font-size: 1.2rem;
   font-weight: bold;
-  margin: 16px;
+  margin:10px;
   color: #333;
   text-decoration: none;
 }
 
 .card-description {
-  margin: 0 16px 16px;
+  margin-top:3px;
+  margin-bottom:3px;
+  margin-left:10px;
   color: #666;
   font-size: 0.9rem;
 }
@@ -1112,13 +1060,18 @@ onMount(() => {
 
 
 .card {
-  min-width: 250px; /* Ensure cards have a consistent width */
+  min-width: 300px; /* Ensure cards have a consistent width */
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 1rem;
   position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+
 }
 
 .card-actions {

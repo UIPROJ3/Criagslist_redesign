@@ -168,7 +168,7 @@
     <!-- Search Bar at the very top -->
     <div class="search-container">
       <input class="search-bar" type="text" bind:value={searchQuery} placeholder="Search posts..." />
-      <i class="search-icon">&#128269;</i> <!-- Magnifying glass icon -->
+      <i class="fa fa-search search-icon"></i> <!-- Magnifying glass icon -->
     </div>
   
     <!-- Main Content (Discussion and Topics) -->
@@ -310,7 +310,7 @@
       margin: 0;
       padding: 12px;
       font-size: 16px;
-      width: 100%;
+      width: 95%;
       border-radius: 5px;
       border: 1px solid #ddd;
       background-color: #fff;
@@ -322,7 +322,7 @@
     .search-icon {
       position: absolute;
       left: 10px;
-      top: 50%;
+      top: 35%;
       transform: translateY(-50%);
       color: #777;
       font-size: 18px;
