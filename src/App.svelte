@@ -9,8 +9,11 @@
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import data from './Catergories.json';
+    import AddPost from './AddPost.svelte';
+    import Discussion from './discussion.svelte';
 
   let location = "Cincinnati";
+  let addPost = false;
   let latestEntries = [
     { title: 'New Post 1', description: 'Description for post 1', url: '/post1', imageUrl: 'https://via.placeholder.com/200' },
     { title: 'New Post 2', description: 'Description for post 2', url: '/post2', imageUrl: 'https://via.placeholder.com/200' },
@@ -30,7 +33,19 @@
       headerHeight.set(header.offsetHeight);
     }
   };
+  let scrollContainer;
 
+    const scrollLeft = () => {
+        if (scrollContainer) {
+            scrollContainer.scrollBy({ left: -300, behavior: "smooth" });
+        }
+    };
+
+    const scrollRight = () => {
+        if (scrollContainer) {
+            scrollContainer.scrollBy({ left: 300, behavior: "smooth" });
+        }
+    };
   // Update breadcrumb and browser history
   
   function updateBreadcrumb(category, subcategory = null) {
@@ -76,12 +91,250 @@
   function closeDropdown() {
     isDropdownOpen = false;
   }
+  
+  function showpost()
+  {
+    addPost = true;
+  }
+  const items = [
+  { name: 'Coffee Shop', description: 'Great coffee and pastries', location: { lat: 40.7128, lon: -74.0060 }, city: 'New York' },
+  { name: 'Pizza Place', description: 'Delicious pizza and pasta', location: { lat: 34.0522, lon: -118.2437 }, city: 'Los Angeles' },
+  { name: 'Sushi Bar', description: 'Authentic Japanese sushi', location: { lat: 35.6895, lon: 139.6917 }, city: 'Tokyo' },
+  // Add more items as needed...
+];
+
+
+
+
+
+// Main search function
+function searchItems(queryText, location, radius = 60) {
+  // Ensure items array exists
+  if (!Array.isArray(items)) {
+    throw new Error("items must be an array");
+  }
+
+  // Normalize the query text
+  const lowerQuery = queryText?.toLowerCase() || "";
+ console.log(lowerQuery);
+  // If no query is provided, return an empty array
+  if (!lowerQuery) {
+    return [];
+  }
+
+  // Filter items based on text match and location match
+  return items.filter(item => {
+    // Safely handle potential null/undefined properties
+    const itemName = item?.name?.toLowerCase() || "";
+    const itemDescription = item?.description?.toLowerCase() || "";
+    const itemCity = item?.city?.toLowerCase() || "";
+
+    // Check if the query text matches name or description
+    const matchesText =
+      lowerQuery &&
+      (itemName.includes(lowerQuery) || itemDescription.includes(lowerQuery));
+
+    // Location matching
+    let matchesLocation = true;
+    if (location) {
+      if (location.lat && location.lon) {
+        // Lat/Lon-based location matching
+        const itemLat = item?.location?.lat;
+        const itemLon = item?.location?.lon;
+
+        if (itemLat != null && itemLon != null) {
+          const distance = haversine(location.lat, location.lon, itemLat, itemLon);
+          matchesLocation = distance <= radius; // Within radius
+        } else {
+          matchesLocation = false; // No valid item location
+        }
+      } else if (typeof location === "string") {
+        // City-based location matching
+        matchesLocation = itemCity.includes(location.toLowerCase());
+      }
+    }
+
+    // Return true if both text and location match
+    return matchesText || matchesLocation;
+  });
+}
+
+// Example Haversine formula function for calculating distances
+function haversine(lat1, lon1, lat2, lon2) {
+  const toRad = angle => (Math.PI / 180) * angle;
+  const R = 6371; // Earth's radius in kilometers
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in kilometers
+}
+
+// Variables
+let textQuery = '';
+let locationQuery = '';
+let searchResults = [];
+let searchQuery = '';
+let userLocation = null;
+let search = false;
+let focusedIndex = -1;
+let isSelect = false;
+let discussion = false;
+
+// Function to update search results
+function updateSearch() {
+  const location = userLocation || locationQuery; 
+  console.log(userLocation);// Use user location or city query
+  searchResults = searchItems(textQuery, location, 10);
+  console.log(searchResults);
+  }
+
+// Handle Enter key press
+function handleKeyPress(event) {
+  console.log(focusedIndex);
+    if(event.key === 'Enter' && focusedIndex==-1 && textQuery==""){
+      filteredSuggestions =[];
+    }
+    else if (event.key === 'Enter' && (focusedIndex >= 0 || (textQuery||locationQuery))) {
+      handleSearch();
+      selectSuggestion(filteredSuggestions[focusedIndex]);
+      } else if (event.key === 'ArrowDown') {
+      if (focusedIndex < filteredSuggestions.length - 1) {
+        focusedIndex += 1;
+        
+      }
+    } else if (event.key === 'ArrowUp') {
+      if (focusedIndex > 0) {
+        focusedIndex -= 1;
+      }
+    }
+  }
+
+let suggestions = ["Apple", "Banana", "Cherry", "Date", "Eggplant", "Fig", "Grape", "Honeydew"];// Suggestions filtered based on input
+
+// Handle search button click
+function handleSearch() {
+filteredSuggestions = suggestions.filter((item) =>
+      item.toLowerCase().includes(textQuery.toLowerCase())
+    );
+  search = true;
+  discussion= false;
+    
+  
+}
+function selectSuggestion(suggestion) {
+    textQuery = suggestion|| textQuery;
+    const searchUrl = `/SearchResults?query=${encodeURIComponent(textQuery)}&location=${encodeURIComponent(locationQuery)}`;
+    navigate(searchUrl); // Use `svelte-routing`'s `navigate`
+    window.history.pushState({ textQuery, locationQuery }, '', searchUrl);
+    filteredSuggestions = []; // Hide suggestions after selection
+    focusedIndex =-1;
+    // You can also trigger a search or perform other actions here
+    console.log("Selected:", suggestion);
+    console.log(textQuery);
+    isSelect = true;
+    updateSearch();
+  }
+
+  async function getLatLongWithNominatim(cityName) {
+  const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`;
+
+  try {
+    const response = await fetch(endpoint);
+    const data = await response.json();
+
+    if (data.length > 0) {
+      const location = data[0];
+      console.log(`Latitude: ${location.lat}, Longitude: ${location.lon}`);
+      return location;
+    } else {
+      console.error("No results found");
+      return null;
+    }
+  } catch (error) {
+    console.error("Failed to fetch geocoding data:", error);
+    return null;
+  }
+}
+
+// Example usage
+getLatLongWithNominatim(locationQuery).then(location => {
+  if (location) {
+    console.log(`Coordinates of ${locationQuery}:`, location);
+  }
+});
+
+  
+
+// Set user location (browser geolocation)
+onMount(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(position => {
+      userLocation = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+      };
+      updateSearch(); // Update search with user location
+    });
+  }
+
+ 
+});
+onMount(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  textQuery = urlParams.get('query') || '';
+  locationQuery = urlParams.get('location') || '';
+  updateSearch();
+});
+
+
 
   onMount(() => {
     calculateHeaderHeight();
     window.addEventListener('resize', calculateHeaderHeight);
     return () => window.removeEventListener('resize', calculateHeaderHeight);
   });
+
+  // $: filteredNameSuggestions = nameSuggestions.filter(suggestion => 
+  //   suggestion.toLowerCase().includes(textQuery.toLowerCase())
+  // );
+
+  $: filteredSuggestions = textQuery === '' 
+    ? []  // If textQuery is empty, show no suggestions
+    : suggestions.filter(item => 
+        item.toLowerCase().includes(textQuery.toLowerCase())
+    ); 
+    
+    let searchContainer;
+    function handleClickOutside(event) {
+    if (!searchContainer.contains(event.target)) {
+      filteredSuggestions = [];
+    }
+  }
+  
+  onMount(() => {
+    searchContainer.addEventListener("click", handleClickOutside);
+    return () => {
+      searchContainer.removeEventListener("click", handleClickOutside);
+    };
+  });
+  function redirectTo(link) {
+    window.location.href = link; // Redirects to the specified URL
+  }
+  function setDiscussion() {
+    navigate('/Discussions');
+    discussion = true;
+    console.log(discussion);
+    console.log(search);
+    search= false;
+    
+  }
+  console.log(search);
 </script>
 
 <Router>
@@ -90,41 +343,75 @@
       <div class="sticky">
         <header bind:this={header}>
           <p class="header-logo"><i class="fas fa-peace"></i> Craigslist</p>
-          <div class="search-container">
-            <input type="text" placeholder="Search Craigslist" class="search-input" />
+          <div class="search-container" bind:this={searchContainer}>
+            <input
+              type="text"
+              bind:value={textQuery}
+              class="search-input"
+              placeholder="Search by name or description..."
+              on:input={this}
+              on:keydown={(event)=>handleKeyPress(event)}
+            />
+            {#if filteredSuggestions.length > 0}
+            <ul class="suggestions-list">
+              {#each filteredSuggestions as suggestion,index}
+                <li on:click={() => selectSuggestion(suggestion)} class:focused={index === focusedIndex} >
+                  {suggestion}
+                </li>
+              {/each}
+            </ul>
+          {/if}
+            <input
+              type="text"
+              bind:value={locationQuery}
+              class="search-input location-query"
+              on:keydown={(event)=>handleKeyPress(event)}
+              placeholder="Search by city or location..."
+            />
             <button class="search-icon">
-              <i class="fa fa-search"></i>
+              <i class="fa fa-search" on:click={handleSearch}></i>
             </button>
-          </div>
-          <div class="header-actions">
+          </div>  
+          
+          <div class="header-actions"> 
             <button class="icon-button">Post</button>
             <button class="icon-button">Sign In</button>
             <button class="icon-button">Register</button>
-            <button class="icon-button discussion-btn">Discussion</button>
+            <button class="icon-button discussion-btn" on:click={setDiscussion}>Discussion</button>
           </div>
         </header>
         <div class="breadcrumbs-box">
           <div class="breadcrumbs">
             {#if !selectedCategory && !selectedSubcategory}
               <span class="breadcrumb" on:click={() => { 
-                selectedCategory = null; selectedSubcategory = null; 
+                selectedCategory = null; selectedSubcategory = null;search=false;discussion=false; textQuery="";locationQuery="";filteredSuggestions=[];
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
                 window.history.pushState({}, '', '/'); // Ensure home URL is pushed to history
               }}>
-                Home
-              </span>
+                Home</span>
+                {#if search && selectedCategory === null && discussion === false}
+                <span class="breadcrumb-separator">›</span>
+               <span class="breadcrumb active" >Search Results</span>
+              {/if}
+              {#if discussion && selectedCategory === null}
+                <span class="breadcrumb-separator">›</span>
+               <span class="breadcrumb active" >Discussion</span>
+              {/if}
+              
             {:else if selectedCategory}
               <span class="breadcrumb" on:click={() => { 
                 selectedCategory = null; selectedSubcategory = null; 
                 localStorage.removeItem("selectedCategory"); localStorage.removeItem("selectedSubcategory"); 
                 navigate("/"); 
-                window.history.pushState({}, '', '/'); // Ensure home URL is pushed to history
+                window.history.pushState({}, '', '/'); 
+                search=false; discussion=false; filteredSuggestions=[]; textQuery="";locationQuery="";// Ensure home URL is pushed to history
               }}>
                 Home
               </span>
+              
               <span class="breadcrumb-separator">›</span>
-              {#if selectedSubcategory}
+              {#if selectedSubcategory && !search && !discussion}
                 <span class="breadcrumb active" on:click={() => { 
                   selectedSubcategory = null; 
                   localStorage.removeItem("selectedSubcategory"); 
@@ -138,6 +425,11 @@
                 <span class="breadcrumb active">
                   {selectedSubcategory.name}
                 </span>
+              {:else if search && (selectedCategory || selectedSubcategory) && !discussion}
+              <span class="breadcrumb active" >Search Results</span>
+              {:else if discussion && (selectedCategory || selectedSubcategory) && !search}
+              <span class="breadcrumb active" >Discussion</span>
+              
               {:else}
                 <span class="breadcrumb active">{selectedCategory.name}</span>
               {/if}
@@ -145,7 +437,8 @@
           </div>
           
         </div>
-
+        
+        {#if !search && !discussion}
         <div class="navbar">
           {#each data.Categories as category}
             <div
@@ -153,16 +446,12 @@
               on:click={() => updateBreadcrumb(category)}
               on:mouseenter={() => (hoveredCategory = category)}
               on:mouseleave={() => (hoveredCategory = null)}
-              style:selected={selectedCategory === category ? 'background-color: yellow; color: white;' : ''}
-              >
-              <p>
-                <i class={category.icon}></i> {category.name}
-              </p>
-              {#if hoveredCategory === category}
-                <div class="dropdown">
+              style:selected={selectedCategory === category ? 'background-color: yellow; color: white;' : ''}>
+              <p><i class={category.icon}></i> {category.name}</p>
+              {#if category.subcategories}
+              <div class="dropdown">
                   {#each category.subcategories as subcategory}
-                    <div
-                      class="subcategory-item"
+                    <div class="subcategory-item"
                       on:click={(event) => {
                         event.stopPropagation();
                         updateBreadcrumb(category, subcategory);
@@ -171,11 +460,13 @@
                       {subcategory.name}
                     </div>
                   {/each}
-                </div>
+              </div>
               {/if}
             </div>
+          
           {/each}
         </div>
+        {/if}
         
       </div>
       {#if hoveredCategory}
@@ -197,6 +488,7 @@
                 </div>
               {/each}
             </div><br>
+            <Location/>
               <h2>Nearest Housing </h2>
               <div class="card-container">
                 {#each latestEntries as entry}
@@ -217,9 +509,11 @@
                   </div>
                 {/each}
               </div>
+              
             </div>
           </div>
           <EventCalender />
+          
           
         
       </Route>
@@ -227,11 +521,37 @@
       <Route path="/Artists" let:params>
         <Subcategory {headerHeight} />
       </Route>
+
+      <Route path="/SearchResults" let:params>
+        <p>Search Results</p>
+        <div class="results">
+          {#if searchResults.length>0}
+          {#each searchResults as item}
+        
+            <div class="item">
+              <h3>{item.name}</h3>
+              <p>{item.description}</p>
+              <p>Location: {item.city}</p>
+            </div>
+
+          {/each}
+          {:else}
+          <p>No results found</p>
+          {/if}
+        </div>
+        
+        
+      </Route>
+      <Route path="/Discussions">
+       <Discussion/>
+      </Route>
+      
     </div>
     <Footer />
   </main>
 </Router>
 <style>
+  
   .container {
     display: flex;
     flex-direction: column;
@@ -241,14 +561,17 @@
   }
 
   header {
-    background-color: white;
     display: flex;
     align-items: center;
     padding: 10px 30px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 2000;
+    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
+    -webkit-background-clip: border-box; /* For Chrome, Safari */
+    background-clip: border-box; /* For Firefox */
+    color: transparent;
   }
   .sticky{
     position:sticky;
@@ -259,10 +582,9 @@
   .header-logo {
     font-size: 1.5rem;
     font-weight: bold;
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip: text; /* For Chrome, Safari */
-    background-clip: text; /* For Firefox */
-    color: transparent; /* Makes the text color transparent so the gradient shows */
+    
+    color:white;
+     /* Makes the text color transparent so the gradient shows */
 }
 
 
@@ -273,10 +595,7 @@
   }
 
   .icon-button {
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip:border-box; /* For Chrome, Safari */
-    background-clip:border-box; /* For Firefox */
-    color: white;
+    background-color: white;
     border: none;
     border-radius: 5px;
     padding: 8px 15px;
@@ -292,7 +611,7 @@
   }
 
   .discussion-btn {
-    background-color: #4B2F73;
+    background-color:white;
   }
 
   .content {
@@ -304,35 +623,72 @@
   .search-container {
     display: flex;
     align-items: center;
-    border: 1px solid #5F6A8A;
-    border-radius: 10px;
-    margin: 20px 0;
-    width: 100%;
+    
+    
+    margin-left: 50px;
+  
+  
     max-width: 600px;
     /* Remove right and add left */
     left: 0;
     position: relative; /* Ensure proper positioning */
+    
 }
 
-  .search-input {
-    border: none;
+  /* .search-input {
+    border: 1px solid #DDD;
+    border-radius: 8px;
     outline: none;
     flex: 1;
     padding: 10px;
     font-size: 16px;
     margin-left:20px;
-  }
+  } */
 
   .search-icon {
     
     border: none;
     cursor: pointer;
-    font-size: 20px;
-    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
-    -webkit-background-clip:text; /* For Chrome, Safari */
-    background-clip:text; /* For Firefox */
-    color:transparent;
-    padding-right: 10px;
+    font-size: 20px;/* For Firefox */
+    padding-right: 20px;
+    background-color: none;
+    background:none;
+    -webkit-background-clip: border-box; /* For Chrome, Safari */
+    background-clip: border-box; /* For Firefox */
+    color: transparent;
+   
+  } 
+  .search-container {
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input {
+     /* Space between input fields */
+    border: 2px solid black;
+    border-left:none;
+    padding:15px;
+    margin-right: 2px;
+    border-radius: 10px;
+  
+  }
+
+  .search-input.location-query {
+    border: 2px solid black; 
+    }
+
+  /* .search-icon {
+    padding: 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+  } */
+
+  .search-icon i {
+    font-size: 30px;
+    color:white;
+
   }
  .search-icon:hover{
   background-color: grey;
@@ -355,7 +711,7 @@
     gap: 20px;
     flex-wrap: wrap;
   }
-
+  
   .card {
     background-color: #FFFFFF;
     border: 1px solid #DDD;
@@ -605,5 +961,34 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
     z-index: 5; /* Ensure overlay is above all other content */
+  }
+  .suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-top: none;
+    background-color: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    z-index:2000;
+    color:black;
+  }
+
+  .suggestions-list li {
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .suggestions-list li:hover {
+    background-color: #f0f0f0;
+  }
+
+  .suggestions-list li.focused {
+    background-color: #f0f0f0;
   }
 </style>

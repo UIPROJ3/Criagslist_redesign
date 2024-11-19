@@ -1,260 +1,323 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
 
-  // Sample events data
-  let events = [
-    { title: 'Music Concert', date: '2024-11-16', description: 'A fun music concert featuring top artists.', image: '/assets/music-concert.jpg' },
-    { title: 'Tech Conference', date: '2024-11-18', description: 'Join the latest in tech innovation talks.', image: '/assets/tech-conference.jpg' },
-    { title: 'Art Exhibition', date: '2024-11-20', description: 'An art exhibition showcasing modern art.', image: '/assets/art-exhibition.jpg' },
-  ];
+  let selectedDate = new Date(); // Current date
+  let selectedEvent = null; // Holds the currently selected event for the modal
+  let events = {
+    "2024-11-18": [
+      {
+        title: "Musical Event",
+        image:"https://static01.nyt.com/images/2019/06/14/arts/14listings-classical2/14listings-classical2-videoSixteenByNineJumbo1600.jpg",
+        description: "The showcase of different instruments ending with a concert",
+        location: "Musical Arena",
+        time: "7:00 PM- 12:00 AM"
+      },
+      {
+        title: "Lunch with Voyagers",
+        image: "https://th.bing.com/th/id/OIP.sGlebaAqBzeY8sOheDjuIgHaE8?w=241&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7",
+        description: "Lunch and Learn Event.",
+        location: "The Grill Restaurant",
+        time: "1:00 PM - 2:30 PM"
+      }
+    ],
+    "2024-11-19": [
+      {
+        title: "Workshop: AI in 2024",
+        image: "https://th.bing.com/th/id/OIP.B85lJjbdDyp5MyiGRhLl8gHaED?w=309&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7",
+        description: "Learn about the latest advancements in AI.",
+        location: "Tech Auditorium",
+        time: "9:00 AM - 3:00 PM"
+      }
+    ],
+    "2024-11-30": [
+      {
+        title: "Workshop: NLP in 2024",
+        image: "https://d2mk45aasx86xg.cloudfront.net/Natural_Language_Processing_in_action_11zon_be0e4fa306.webp",
+        description: "Learn about the latest advancements in NLP.",
+        location: "Tech Auditorium",
+        time: "9:00 AM - 3:00 PM"
+      }
+    ]
+  };
 
-  let selectedEvent = null;
-  let isModalOpen = false;
-  let selectedDate = new Date().toISOString().split('T')[0]; // Default to today
+  let days = [];
+  let currentMonth = selectedDate.getMonth();
+  let currentYear = selectedDate.getFullYear();
+
+  const getDaysInMonth = (month, year) => {
+    let date = new Date(year, month, 1);
+    let days = [];
+    while (date.getMonth() === month) {
+      days.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
+    return days;
+  };
+
+  const changeMonth = (direction) => {
+    currentMonth += direction;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear -= 1;
+    } else if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear += 1;
+    }
+    days = getDaysInMonth(currentMonth, currentYear);
+  };
+
+  const selectDate = (date) => {
+    selectedDate = date;
+  };
 
   const openEventDetails = (event) => {
     selectedEvent = event;
-    isModalOpen = true;
   };
 
   const closeModal = () => {
-    isModalOpen = false;
     selectedEvent = null;
   };
 
-  const getEventsByDate = (date) => {
-    return events.filter((event) => event.date === date);
-  };
-
-  let currentMonth = new Date().getMonth();
-  let currentYear = new Date().getFullYear();
-
-  // Calculate the days in the current month
-  const daysInMonth = (month, year) => {
-    let date = new Date(year, month, 0);
-    return date.getDate();
-  };
-
-  let days = Array.from({ length: daysInMonth(currentMonth + 1, currentYear) }, (_, i) => i + 1);
-
-  // Function to handle next/previous month navigation
-  const changeMonth = (direction) => {
-    if (direction === 'next') {
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-    } else {
-      currentMonth--;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-    }
-    days = Array.from({ length: daysInMonth(currentMonth + 1, currentYear) }, (_, i) => i + 1);
-  };
+  onMount(() => {
+    days = getDaysInMonth(currentMonth, currentYear);
+  });
 </script>
 
 <style>
+  /* General Styling */
   .calendar-container {
-    overflow-x: auto;
-    white-space: nowrap;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #f4f7f9;
-    border-radius: 8px;
+    display: flex;
+    gap: 20px;
+    font-family: Arial, sans-serif;
   }
 
-  .calendar-day {
-    display: inline-block;
-    padding: 20px;
-    text-align: center;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    margin: 0 10px;
-    transition: all 0.3s ease;
-    background-color: #fff;
-  }
-
-  .calendar-day:hover {
-    background-color: #4CAF50;
-    color: white;
-    border-color: #388E3C;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .calendar-day.selected {
-    background-color: #388E3C;
-    color: white;
-    border-color: #4CAF50;
+  .calendar {
+    width: 500px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom, #fff, #f9f9f9);
+    overflow: hidden;
+    
+    margin-bottom:20px;
+    margin-left:20px;
   }
 
   .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 10px;
+    background:linear-gradient(125deg, rgb(85, 26, 139), rgb(206 68 164));;
+    -webkit-background-clip: border-box; /* For Chrome, Safari */
+    background-clip: border-box; /* For Firefox */
+    color: transparent;
+  
+    color: white;
+    font-weight: bold;
+  }
+
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .day {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .day:hover {
+    background: #f0f8ff;
+    transform: scale(1.05);
+  }
+
+  .day.selected {
+    background-color: rgb(206 68 164);
+    color: white;
+  }
+
+  .events {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    background: #f9f9f9;
     margin-bottom: 20px;
   }
 
-  .calendar-header h3 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 500;
-    color: #333;
+  .events h3 {
+    margin-top: 0;
+    text-align: center;
+    color: rgb(206 68 164);
   }
 
-  .calendar-header button {
-    background-color: #00796b;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .calendar-header button:hover {
-    background-color: #004d40;
-  }
-
-  .event-list {
-    margin-top: 20px;
-  }
-
-  .event-card {
+  .event {
     display: flex;
-    align-items: center;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 8px;
+    gap: 15px;
     margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.3s ease-in-out;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .event-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  .event:hover {
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
   }
 
-  .event-card img {
-    width: 60px;
-    height: 60px;
-    border-radius: 5px;
-    margin-right: 20px;
+  .event img {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    object-fit: cover;
   }
 
-  .event-info {
+  .event-details {
     flex: 1;
   }
 
-  .event-info h3 {
+  .event-details h4 {
+    margin: 0 0 5px;
+    color: #333;
+  }
+
+  .event-details p {
     margin: 0;
-    font-size: 18px;
-    color: #333;
-  }
-
-  .event-info p {
-    margin: 5px 0 0;
     font-size: 14px;
-    color: #777;
-  }
-
-  .modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    width: 400px;
-    max-width: 100%;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-  }
-
-  .modal.show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .modal-content img {
-    width: 100%;
-    border-radius: 5px;
-  }
-
-  .modal-content h3 {
-    font-size: 20px;
-    color: #333;
-  }
-
-  .modal-content p {
     color: #555;
   }
 
-  .event-tooltip {
+  .no-events {
+    text-align: center;
+    color: #999;
+    margin-top: 20px;
+  }
+
+  /* Modal Styling */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    width: 400px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+  }
+
+  .modal img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+
+  .modal h4 {
+    margin: 10px 0;
+    color: rgb(206 68 164);
+  }
+
+  .modal p {
+    margin: 5px 0;
+    font-size: 15px;
+    color: #555;
+  }
+
+  .modal-close {
     position: absolute;
-    background-color: #333;
-    color: white;
-    padding: 5px;
-    font-size: 12px;
-    border-radius: 3px;
-    top: -30px;
+    bottom:20px;
+    right: 10px;
+    background: none;
+    border: 1px solid #ddd;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .modal-close:hover {
+    color: red;
   }
 </style>
 
-<div>
-  <div class="calendar-header">
-    <button on:click={() => changeMonth('prev')}>←</button>
-    <h3>{new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear}</h3>
-    <button on:click={() => changeMonth('next')}>→</button>
-  </div>
-
-  <div class="calendar-container">
-    {#each days as day}
-      <div
-        class="calendar-day {selectedDate === `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` ? 'selected' : ''}"
-        on:click={() => { selectedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; }}
-      >
-        {day}
-        {#if getEventsByDate(`${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`).length > 0}
-          <div class="event-tooltip">Events</div>
-        {/if}
+<div class="calendar-container">
+  <!-- Calendar Section -->
+  <div class="calendar">
+    <div class="calendar-header">
+      <button on:click={() => changeMonth(-1)}>❮</button>
+      <div>
+        {new Date(currentYear, currentMonth).toLocaleString("default", { month: "long" })} {currentYear}
       </div>
-    {/each}
-  </div>
+      <button on:click={() => changeMonth(1)}>❯</button>
+    </div>
 
-  <h2>Events for {selectedDate}</h2>
-  <div class="event-list">
-    {#each getEventsByDate(selectedDate) as event}
-      <div class="event-card" on:click={() => openEventDetails(event)}>
-        <img src={event.image} alt={event.title} class="event-image" />
-        <div class="event-info">
-          <h3>{event.title}</h3>
-          <p>{event.date}</p>
+    <div class="calendar-days">
+      {#each days as day}
+        <div
+          class="day {selectedDate.toDateString() === day.toDateString() ? 'selected' : ''}"
+          on:click={() => selectDate(day)}>
+          {day.getDate()}
+          <!-- Check if events are available for this day -->
+          {#if events[day.toISOString().split("T")[0]]}
+            <span class="star">★</span> <!-- Star icon -->
+          {/if}
         </div>
-      </div>
-    {/each}
-    {#if getEventsByDate(selectedDate).length === 0}
-      <p>No events scheduled for this date.</p>
+      {/each}
+    </div>
+  </div>
+
+  <!-- Events Section -->
+  <div class="events">
+    <h3>Events on {selectedDate.toDateString()}</h3>
+    {#if events[selectedDate.toISOString().split("T")[0]]}
+      {#each events[selectedDate.toISOString().split("T")[0]] as event}
+        <div class="event" on:click={() => openEventDetails(event)}>
+          <img src={event.image} alt={event.title} />
+          <div class="event-details">
+            <h4>{event.title}</h4>
+            <p><strong>Time:</strong> {event.time}</p>
+            <p><strong>Location:</strong> {event.location}</p>
+          </div>
+        </div>
+      {/each}
+    {:else}
+      <p class="no-events">No events for this day.</p>
     {/if}
   </div>
-
-  {#if isModalOpen}
-    <div class="modal show">
-      <div class="modal-content">
-        <h3>{selectedEvent.title}</h3>
-        <img src={selectedEvent.image} alt={selectedEvent.title} />
-        <p>{selectedEvent.description}</p>
-        <button on:click={closeModal}>Close</button>
-      </div>
-    </div>
-  {/if}
 </div>
+
+<!-- Modal Section -->
+{#if selectedEvent}
+  <div class="modal-overlay" on:click={closeModal}>
+    <div class="modal" on:click|stopPropagation>
+      <button class="modal-close" on:click={closeModal}>Close</button>
+      <img src={selectedEvent.image} alt={selectedEvent.title} />
+      <h4>{selectedEvent.title}</h4>
+      <p><strong>Time:</strong> {selectedEvent.time}</p>
+      <p><strong>Location:</strong> {selectedEvent.location}</p>
+      <p>{selectedEvent.description}</p>
+    </div>
+  </div>
+{/if}
