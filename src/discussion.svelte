@@ -303,7 +303,7 @@
       padding-bottom: 20px;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 0;
     }
     
     .search-bar {
