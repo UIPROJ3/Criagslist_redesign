@@ -515,7 +515,7 @@ onMount(() => {
       
 
       <Route path="/SearchResults" let:params>
-        <p>Search Results</p>
+        <p class="results">Search Results</p>
         <div class="results">
           {#if searchResults.length>0}
           {#each searchResults as item}
@@ -556,6 +556,9 @@ onMount(() => {
     color:black;
     font-weight: bold;
   
+  }
+  .results{
+    margin-left:20px;
   }
 
   header {
